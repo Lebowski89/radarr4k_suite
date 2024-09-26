@@ -1,0 +1,82 @@
+---
+
+################################
+# API
+################################
+
+radarr4k_api_key: []
+
+################################
+# BASICS
+################################
+
+radarr4k_basics_name: 'radarr4k'
+radarr4k_basics_image_repo: 'ghcr.io/hotio/radarr'
+radarr4k_basics_image_tag: 'nightly'
+radarr4k_basics_restart_policy: 'unless-stopped'
+
+################################
+# NETWORK
+################################
+
+radarr4k_network_backend: 'proxy'  ## allows backend docker communication between radarr4k and companion apps, such as recyclarr
+radarr4k_network_backend_driver: []  ## only required if network doesn't exist
+radarr4k_network_backend_subnet: []  ## only required if network doesn't exist
+
+################################
+# ENV
+################################
+
+radarr4k_env_timezone: []
+radarr4k_env_puid: []
+radarr4k_env_pgid: []
+
+################################
+# PORTS
+################################
+
+radarr4k_ports_host: '7879'
+radarr4k_ports_cont: '7878'
+
+################################
+# PATHS
+################################
+
+radarr4k_paths_folder: '{{ radarr4k_basics_name }}'
+radarr4k_paths_location: '/opt/{{ radarr4k_paths_folder }}'
+
+################################
+# BINDS
+################################
+
+radarr4k_volumes_binds_default:
+  - /etc/localtime:/etc/localtime:ro
+  - '{{ radarr4k_paths_location }}:/config'
+
+################################
+# AUTHELIA
+################################
+
+radarr4k_authelia_name: 'authelia'
+
+################################
+# TRAEFIK
+################################
+
+radarr4k_traefik_subdomain: '{{ radarr4k_basics_name }}'
+radarr4k_traefik_domain: []
+radarr4k_traefik_port: '7878'
+radarr4k_traefik_themepark_theme: 'hotline'  ## See https://github.com/themepark-dev/theme.park
+
+  ## traefik docker network
+radarr4k_traefik_network: 'traefik_proxy'
+radarr4k_traefik_network_driver: []  ## only required if network doesn't exist
+radarr4k_traefik_network_subnet: []  ## only required if network doesn't exist
+
+################################
+# CLOUDFLARE
+################################
+
+radarr4k_cloudflare_record_type: 'A'  ## A (IPV4), AAAA (IPV6), CNAME, etc
+radarr4k_cloudflare_proxy: 'true'  ## true for cloudflare DNS SSL
+radarr4k_cloudflare_api_token: []

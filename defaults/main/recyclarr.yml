@@ -1,0 +1,32 @@
+---
+
+################################
+# BASICS
+################################
+
+radarr4k_recyclarr_basics_name: 'recyclarr'
+radarr4k_recyclarr_basics_image_repo: 'ghcr.io/recyclarr/recyclarr'
+radarr4k_recyclarr_basics_image_tag: 'latest'
+radarr4k_recyclarr_basics_restart_policy: 'unless-stopped'
+
+################################
+# ENV
+################################
+
+radarr4k_recyclarr_env_timezone: []
+radarr4k_recyclarr_env_puid: []
+radarr4k_recyclarr_env_pgid: []
+
+################################
+# PATHS
+################################
+
+radarr4k_recyclarr_paths_folder: '{{ radarr4k_recyclarr_name }}'
+radarr4k_recyclarr_paths_location: '/opt/{{ radarr4k_recyclarr_folder }}'
+
+################################
+# BINDS
+################################
+
+radarr4k_recyclarr_bind_mount:
+  - '{{ radarr4k_recyclarr_paths_location }}:/config'

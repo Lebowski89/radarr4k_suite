@@ -1,0 +1,291 @@
+---
+
+################################
+# DEPENDENCIES
+################################
+
+- name: Install prerequisite apt packages
+  ansible.builtin.apt:
+    pkg:
+      - python3-requests
+      - python3-psycopg2
+      - python3-lxml
+    update_cache: true
+
+- name: Install collection requirements
+  community.general.ansible_galaxy_install:
+    type: collection
+    requirements_file: '{{ role_path }}/requirements.yml'
+
+################################
+# DOCKER
+################################
+
+- name: Apt install docker if required
+  when: ansible_os_family == 'Debian'
+  block:
+    - name: Gather apt facts
+      ansible.builtin.package_facts:
+        manager: apt
+
+    - name: Include docker install tasks
+      when: '"docker-ce" not in ansible_facts.packages'
+      ansible.builtin.include_tasks: 'sub_tasks/docker.yml'
+
+################################
+# CLEAN UP
+################################
+
+- name: Register radarr4k container
+  community.docker.docker_container_info:
+    name: '{{ radarr4k_basics_name }}'
+  register: radarr4k_existing_container_result
+
+- name: Remove existing radarr4k container
+  when: radarr4k_existing_container_result.exists
+  community.docker.docker_container:
+    container_default_behavior: compatibility
+    name: '{{ radarr4k_basics_name }}'
+    state: absent
+    stop_timeout: 10
+  register: remove_radarr4k_docker
+  retries: 5
+  delay: 10
+  until: remove_radarr4k_docker is succeeded
+
+################################
+# BACKEND NETWORK
+################################
+
+- name: Conduct backend network tasks
+  when: radarr4k_network_backend_is_enabled
+  block:
+    - name: Register radarr4k backend network
+      community.docker.docker_network_info:
+        name: '{{ radarr4k_network_backend }}'
+      register: radarr4k_net_backend_result
+
+    - name: Radarr4k network backend builtin fail
+      ansible.builtin.fail:
+        msg: radarr4k backend network does not exist nor is it enabled. Ensure the radarr4k backend network variables contain valid entries.
+      when:
+        - not radarr4k_net_backend_result.exists
+        - not radarr4k_network_backend_is_enabled
+
+    - name: Create radarr4k backend network
+      when:
+        - not radarr4k_net_backend_result.exists
+        - radarr4k_network_backend_is_enabled
+      community.docker.docker_network:
+        name: '{{ radarr4k_network_backend }}'
+        driver: '{{ radarr4k_network_backend_driver }}'
+        ipam_config:
+          - subnet: '{{ radarr4k_network_backend_subnet }}'
+
+################################
+# APPDATA
+################################
+
+- name: Create radarr4k appdata directory
+  ansible.builtin.file:
+    path: '{{ radarr4k_paths_location }}'
+    state: directory
+    owner: '{{ radarr4k_env_puid }}'
+    group: '{{ radarr4k_env_pgid }}'
+    mode: '0755'
+
+################################
+# CONFIG
+################################
+
+- name: Check if radarr4k config.xml exists
+  ansible.builtin.stat:
+    path: '{{ radarr4k_paths_location }}/config.xml'
+  register: radarr4k_config_xml
+
+- name: Create radarr4k config.xml file
+  when: not radarr4k_config_xml.stat.exists
+  block:
+    - name: Import config file
+      ansible.builtin.template:
+        src: '{{ role_path }}/templates/config.xml.j2'
+        dest: '{{ radarr4k_paths_location }}/config.xml'
+        force: true
+        owner: '{{ radarr4k_env_puid }}'
+        group: '{{ radarr4k_env_pgid }}'
+        mode: '0664'
+
+    - name: Wait for 'config.xml' to be created
+      ansible.builtin.wait_for:
+        path: '{{ radarr4k_paths_location }}/config.xml'
+        state: present
+
+    - name: Radarr4k config.xml | Lookup Apikey value
+      when: radarr4k_api_key_is_enabled
+      community.general.xml:
+        path: '{{ radarr4k_paths_location }}/config.xml'
+        xpath: "/Config/ApiKey"
+        content: "text"
+      register: xml_radarr4k_api
+
+    - name: Radarr4k config.xml | insert existing api key
+      when:
+        - radarr4k_api_key_is_enabled
+        - ((xml_radarr4k_api.matches[0].ApiKey is defined) and (xml_radarr4k_api.matches[0].ApiKey != radarr4k_api_key))
+      community.general.xml:
+        path: '{{ radarr4k_paths_location }}/config.xml'
+        xpath: '/Config/ApiKey'
+        value: '{{ radarr4k_api_key }}'
+
+    - name: Radarr4k config.xml | Lookup AuthenticationMethod value
+      when: radarr4k_authelia_is_enabled
+      community.general.xml:
+        path: '{{ radarr4k_paths_location }}/config.xml'
+        xpath: "/Config/AuthenticationMethod"
+        content: "text"
+      register: xml_radarr4k_external
+
+    - name: Register authelia container
+      when: radarr4k_authelia_is_enabled
+      community.docker.docker_container_info:
+        name: '{{ radarr4k_authelia_name }}'
+      register: radarr4k_authelia_container_result
+
+    - name: Radarr4k config.xml | change auth method to external  ## prevents double login when using authelia
+      when:
+        - radarr4k_authelia_is_enabled
+        - radarr4k_authelia_container_result.exists
+        - ((xml_radarr4k_external.matches[0].AuthenticationMethod is defined) and (xml_radarr4k_external.matches[0].AuthenticationMethod != 'External'))
+      community.general.xml:
+        path: '{{ radarr4k_paths_location }}/config.xml'
+        xpath: '/Config/AuthenticationMethod'
+        value: 'External'
+
+################################
+# POSTGRES
+################################
+
+- name: Include postgres container tasks
+  when: radarr4k_postgres_is_enabled
+  ansible.builtin.include_tasks: 'postgres/postgres_container.yml'
+
+- name: Include postgres database tasks
+  when: radarr4k_postgres_is_enabled
+  ansible.builtin.include_tasks: 'postgres/postgres_database.yml'
+
+- name: Include postgres radarr4k config.xml tasks
+  when: radarr4k_postgres_is_enabled
+  ansible.builtin.include_tasks: 'postgres/postgres_config_xml.yml'
+
+################################
+# TRAEFIK
+################################
+
+- name: Conduct traefik tasks
+  when: radarr4k_traefik_is_enabled
+  block:
+    - name: Register traefik network
+      community.docker.docker_network_info:
+        name: '{{ radarr4k_traefik_network }}'
+      register: radarr4k_traefik_network_result
+
+    - name: Traefik builtin fail
+      when:
+        - not radarr4k_traefik_network_is_enabled
+        - not radarr4k_traefik_network_result.exists
+      ansible.builtin.fail:
+        msg: Traefik network does not exist nor is it enabled. Ensure the Traefik network variables contain valid entries.
+
+    - name: Create traefik network
+      when: not radarr4k_traefik_network_result.exists
+      community.docker.docker_network:
+        name: '{{ radarr4k_traefik_network }}'
+        driver: '{{ radarr4k_traefik_network_driver }}'
+        ipam_config:
+          - subnet: '{{ radarr4k_traefik_network_subnet }}'
+
+################################
+# CLOUDFLARE
+################################
+
+- name: Include cloudflare tasks
+  when: radarr4k_cloudflare_is_enabled
+  ansible.builtin.include_tasks: 'sub_tasks/cloudflare.yml'
+
+################################
+# NFS
+################################
+
+- name: Include nfs tasks
+  ansible.builtin.include_tasks: 'sub_tasks/nfs.yml'
+
+################################
+# RCLONE
+################################
+
+- name: Include rclone tasks
+  when: radarr4k_rclone_qbittorrent_is_enabled
+  ansible.builtin.include_tasks: 'sub_tasks/rclone.yml'
+
+################################
+# METRICS
+################################
+
+- name: Include prometheus container tasks
+  when: radarr4k_prometheus_is_enabled
+  ansible.builtin.include_tasks: 'prometheus/prometheus_container.yml'
+
+- name: Include prometheus exporter tasks
+  when:
+    - radarr4k_prometheus_is_enabled
+    - radarr4k_prometheus_exporter_is_enabled
+  ansible.builtin.include_tasks: 'prometheus/prometheus_exporter.yml'
+
+- name: Include prometheus cloudflare tasks
+  when: radarr4k_prometheus_is_enabled
+  ansible.builtin.include_tasks: 'prometheus/prometheus_cloudflare.yml'
+
+################################
+# CONTAINER
+################################
+
+- name: Create radarr4k container
+  when: not radarr4k_traefik_is_enabled
+  community.docker.docker_container:
+    name: '{{ radarr4k_basics_name }}'
+    image: '{{ radarr4k_basics_image_repo }}:{{ radarr4k_basics_image_tag }}'
+    networks: '{{ radarr4k_docker_networks }}'
+    env:
+      PUID: '{{ radarr4k_env_puid }}'
+      PGID: '{{ radarr4k_env_pgid }}'
+      TZ: '{{ radarr4k_env_timezone }}'
+    ports:
+      - '{{ radarr4k_ports_host }}:{{ radarr4k_ports_cont }}'
+    volumes: '{{ radarr4k_docker_volumes }}'
+#    healthcheck:
+    restart_policy: '{{ radarr4k_basics_restart_policy }}'
+
+- name: Create radarr4k traefik container
+  when: radarr4k_traefik_is_enabled
+  community.docker.docker_container:
+    name: '{{ radarr4k_basics_name }}'
+    image: '{{ radarr4k_basics_image_repo }}:{{ radarr4k_basics_image_tag }}'
+    networks: '{{ radarr4k_docker_networks }}'
+    env:
+      PUID: '{{ radarr4k_env_puid }}'
+      PGID: '{{ radarr4k_env_pgid }}'
+      TZ: '{{ radarr4k_env_timezone }}'
+    labels: '{{ radarr4k_traefik_labels }}'
+    ports:
+      - '{{ radarr4k_ports_host }}:{{ radarr4k_ports_cont }}'
+    volumes: '{{ radarr4k_docker_volumes }}'
+#    healthcheck:
+    restart_policy: '{{ radarr4k_basics_restart_policy }}'
+
+################################
+# RECYCLARR
+################################
+
+- name: Include recyclarr tasks
+  when: radarr4k_recyclarr_is_enabled
+  ansible.builtin.include_tasks: 'sub_tasks/recyclarr.yml'

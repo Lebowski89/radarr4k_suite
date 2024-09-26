@@ -1,0 +1,153 @@
+---
+
+################################
+# API
+################################
+
+radarr4k_api_key_is_enabled: '{{ (radarr4k_api_key is defined) and
+                                 (radarr4k_api_key is not none) and
+                                 (radarr4k_api_key | trim | length > 0) }}'
+
+################################
+# NETWORK
+################################
+
+radarr4k_network_backend_is_enabled: '{{ (radarr4k_network_backend is defined) and
+                                         (radarr4k_network_backend is not none) and
+                                         (radarr4k_network_backend | trim | length > 0) and
+                                         (radarr4k_network_backend_driver is defined) and
+                                         (radarr4k_network_backend_driver is not none) and
+                                         (radarr4k_network_backend_driver | trim | length > 0) and
+                                         (radarr4k_network_backend_subnet is defined) and
+                                         (radarr4k_network_backend_subnet is not none) and
+                                         (radarr4k_network_backend_subnet | trim | length > 0) }}'
+
+radarr4k_network_default_bind:
+  - name: '{{ radarr4k_network_backend }}'
+radarr4k_network_postgres_bind:
+  - name: '{{ radarr4k_postgres_network }}'
+radarr4k_network_traefik_bind:
+  - name: '{{ radarr4k_traefik_network }}'
+radarr4k_network_prometheus_bind:
+  - name: '{{radarr4k_prometheus_network }}'
+
+radarr4k_docker_networks: '{{ radarr4k_network_default_bind
+                            + (radarr4k_network_postgres_bind
+                               if radarr4k_postgres_is_enabled
+                               else [])
+                            + (radarr4k_network_traefik_bind
+                               if radarr4k_traefik_is_enabled
+                               else [])
+                            + (radarr4k_network_prometheus_bind
+                               if radarr4k_prometheus_is_enabled
+                               else []) }}'
+
+################################
+# BINDS
+################################
+
+radarr4k_docker_volumes: '{{ radarr4k_volumes_binds_default
+                             + (radarr4k_nfs_media_bind
+                                if radarr4k_nfs_media_volume_result.exists
+                                else [])
+                             + (radarr4k_rclone_qbittorrent_bind
+                                if radarr4k_rclone_qbittorrent_volume_result.exists
+                                else []) }}'
+
+################################
+# AUTHELIA
+################################
+
+radarr4k_authelia_is_enabled: '{{ (radarr4k_authelia_name is defined) and
+                                  (radarr4k_authelia_name is not none) and
+                                  (radarr4k_authelia_name | trim | length > 0) }}'
+
+################################
+# TRAEFIK
+################################
+
+radarr4k_traefik_is_enabled: '{{ (radarr4k_traefik_network is defined) and
+                                 (radarr4k_traefik_network is not none) and
+                                 (radarr4k_traefik_network | trim | length > 0) and
+                                 (radarr4k_traefik_subdomain is defined) and
+                                 (radarr4k_traefik_subdomain is not none) and
+                                 (radarr4k_traefik_subdomain | trim | length > 0) and
+                                 (radarr4k_traefik_domain is defined) and
+                                 (radarr4k_traefik_domain is not none) and
+                                 (radarr4k_traefik_domain | trim | length > 0) and
+                                 (radarr4k_traefik_port is defined) and
+                                 (radarr4k_traefik_port is not none) and
+                                 (radarr4k_traefik_port | trim | length > 0) and
+                                 (radarr4k_traefik_themepark_theme is defined) and
+                                 (radarr4k_traefik_themepark_theme is not none) and
+                                 (radarr4k_traefik_themepark_theme | trim | length > 0) }}'
+
+radarr4k_traefik_network_is_enabled: '{{ (radarr4k_traefik_network is defined) and
+                                         (radarr4k_traefik_network is not none) and
+                                         (radarr4k_traefik_network | trim | length > 0) and
+                                         (radarr4k_traefik_network_driver is defined) and
+                                         (radarr4k_traefik_network_driver is not none) and
+                                         (radarr4k_traefik_network_driver | trim | length > 0) and
+                                         (radarr4k_traefik_network_subnet is defined) and
+                                         (radarr4k_traefik_network_subnet is not none) and
+                                         (radarr4k_traefik_network_subnet | trim | length > 0) }}'
+
+radarr4k_traefik_labels_default:
+  traefik.enable: 'true'
+  traefik.docker.network: '{{ radarr4k_traefik_network }}'
+
+radarr4k_traefik_labels_router:
+  traefik.http.routers.radarr4k-rtr.entrypoints: 'http'
+  traefik.http.routers.radarr4k-rtr.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`)'
+  traefik.http.routers.radarr4k-rtr.middlewares: 'globalHeaders@file,robotHeaders@file,authelia@docker'
+  traefik.http.routers.radarr4k-rtr.priority: '20'
+  traefik.http.routers.radarr4k-rtr.service: 'radarr4k-rtr-svc'
+  traefik.http.services.radarr4k-rtr-svc.loadbalancer.server.port: '{{ radarr4k_traefik_port }}'
+  traefik.http.routers.radarr4k-api-rtr.entrypoints: 'http'
+  traefik.http.routers.radarr4k-api-rtr.middlewares: 'globalHeaders@file,robotHeaders@file'
+  traefik.http.routers.radarr4k-api-rtr.priority: '30'
+  traefik.http.routers.radarr4k-api-rtr.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`) && (PathPrefix(`/api/websocket/`))'
+  traefik.http.routers.radarr4k-api-rtr.service: 'radarr4k-rtr-svc'
+
+radarr4k_traefik_labels_router_secure:
+  traefik.http.routers.radarr4k-rtr-secure.entrypoints: 'https'
+  traefik.http.routers.radarr4k-rtr-secure.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`)'
+  traefik.http.routers.radarr4k-rtr-secure.middlewares: 'globalHeaders@file,secureHeaders@file,robotHeaders@file,authelia@docker'
+  traefik.http.routers.radarr4k-rtr-secure.priority: '20'
+  traefik.http.routers.radarr4k-rtr-secure.service: 'radarr4k-rtr-secure-svc'
+  traefik.http.routers.radarr4k-rtr-secure.tls.certresolver: 'dns-cloudflare'
+  traefik.http.routers.radarr4k-rtr-secure.tls.options: 'tls-opts@file'
+  traefik.http.services.radarr4k-rtr-secure-svc.loadbalancer.server.port: '{{ radarr4k_traefik_port }}'
+  traefik.http.routers.radarr4k-api-rtr-secure.entrypoints: 'https'
+  traefik.http.routers.radarr4k-api-rtr-secure.middlewares: 'globalHeaders@file,secureHeaders@file,robotHeaders@file'
+  traefik.http.routers.radarr4k-api-rtr-secure.priority: '30'
+  traefik.http.routers.radarr4k-api-rtr-secure.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`) && (PathPrefix(`/api/websocket/`))'
+  traefik.http.routers.radarr4k-api-rtr-secure.service: 'radarr4k-rtr-secure-svc'
+  traefik.http.routers.radarr4k-api-rtr-secure.tls.certresolver: 'dns-cloudflare'
+  traefik.http.routers.radarr4k-api-rtr-secure.tls.options: 'tls-opts@file'
+
+radarr4k_traefik_labels_themepark:
+  traefik.http.middlewares.themepark-portainer.plugin.themepark.app: '{{ radarr4k_basics_name }}'
+  traefik.http.middlewares.themepark-portainer.plugin.themepark.theme: '{{ radarr4k_traefik_themepark_theme }}'
+
+radarr4k_traefik_labels: '{{ radarr4k_traefik_labels_default
+                             | combine(radarr4k_traefik_labels_router)
+                             | combine(radarr4k_traefik_labels_router_secure)
+                             | combine(radarr4k_traefik_labels_themepark) }}'
+
+################################
+# CLOUDFLARE
+################################
+
+radarr4k_cloudflare_record: '{{ radarr4k_traefik_subdomain }}'
+radarr4k_cloudflare_zone: '{{ radarr4k_traefik_domain }}'
+
+radarr4k_cloudflare_is_enabled: '{{ (radarr4k_cloudflare_record_type is defined) and
+                                    (radarr4k_cloudflare_record_type is not none) and
+                                    (radarr4k_cloudflare_record_type | trim | length > 0) and
+                                    (radarr4k_cloudflare_proxy is defined) and
+                                    (radarr4k_cloudflare_proxy is not none) and
+                                    (radarr4k_cloudflare_proxy | trim | length > 0) and
+                                    (radarr4k_cloudflare_api_token is defined) and
+                                    (radarr4k_cloudflare_api_token is not none) and
+                                    (radarr4k_cloudflare_api_token | trim | length > 0) }}'

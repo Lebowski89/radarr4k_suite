@@ -1,0 +1,84 @@
+---
+
+- name: Create postgres appdata directory
+  ansible.builtin.file:
+    path: '{{ radarr4k_postgres_paths_location }}'
+    state: directory
+    owner: '{{ radarr4k_postgres_env_puid }}'
+    group: '{{ radarr4k_postgres_env_pgid }}'
+    mode: '0755'
+
+- name: Create postgres keys directory
+  ansible.builtin.file:
+    path: '{{ radarr4k_postgres_paths_keys_location }}'
+    state: directory
+    owner: '{{ radarr4k_postgres_env_puid }}'
+    group: '{{ radarr4k_postgres_env_pgid }}'
+    mode: '0755'
+
+- name: Check if postgres_key.txt exists
+  ansible.builtin.stat:
+    path: '{{ radarr4k_postgres_paths_keys_location }}/{{ radarr4k_postgres_auth_password_file }}'
+  register: radarr4k_postgres_key_txt
+
+- name: Insert postgres password into password file
+  when: not radarr4k_postgres_key_txt.stat.exists
+  ansible.builtin.lineinfile:
+    path: '{{ radarr4k_postgres_paths_keys_location }}/{{ radarr4k_postgres_auth_password_file }}'
+    line: '{{ radarr4k_postgres_auth_password }}'
+    owner: '{{ radarr4k_postgres_env_puid }}'
+    group: '{{ radarr4k_postgres_env_pgid }}'
+    mode: '0644'
+    create: true
+
+- name: Register postgres network
+  community.docker.docker_network_info:
+    name: '{{ radarr4k_postgres_network }}'
+  register: radarr4k_postgres_network_result
+
+- name: Postgres network builtin fail
+  ansible.builtin.fail:
+    msg: Postgres network does not exist nor is it enabled. Ensure the Postgres network variables contain valid entries.
+  when:
+    - not radarr4k_postgres_network_is_enabled
+    - not radarr4k_postgres_network_result.exists
+
+- name: Create postgres network
+  when: not radarr4k_postgres_network_result.exists
+  community.docker.docker_network:
+    name: '{{ radarr4k_postgres_network }}'
+    driver: '{{ radarr4k_postgres_network_driver }}'
+    ipam_config:
+      - subnet: '{{ radarr4k_postgres_network_subnet }}'
+
+- name: Register postgres container
+  community.docker.docker_container_info:
+    name: '{{ radarr4k_postgres_basics_name }}'
+  register: radarr4k_postgres_container_result
+
+- name: Create postgres container
+  when: not radarr4k_postgres_container_result.exists
+  community.docker.docker_container:
+    name: '{{ radarr4k_postgres_basics_name }}'
+    image: '{{ radarr4k_postgres_basics_image_repo }}:{{ radarr4k_postgres_basics_image_tag }}'
+    networks:
+      - name: '{{ radarr4k_postgres_network }}'
+    env:
+      PUID: '{{ radarr4k_postgres_env_puid }}'
+      PGID: '{{ radarr4k_postgres_env_pgid }}'
+      TZ: '{{ radarr4k_postgres_env_timezone }}'
+      POSTGRES_USER: '{{ radarr4k_postgres_auth_user }}'
+      POSTGRES_PASSWORD_FILE: '/keys/{{ radarr4k_postgres_auth_password_file }}'
+    ports:
+      - '{{ radarr4k_postgres_ports_host }}:{{ radarr4k_postgres_ports_cont }}'
+    volumes: '{{ radarr4k_postgres_binds }}'
+    restart_policy: '{{ radarr4k_postgres_basics_restart_policy }}'
+
+- name: Make sure the postgres container is started
+  community.docker.docker_container:
+    name: '{{ radarr4k_postgres_basics_name }}'
+    state: started
+  register: start_radarr4k_postgres_docker
+  retries: 5
+  delay: 10
+  until: start_radarr4k_postgres_docker is succeeded
