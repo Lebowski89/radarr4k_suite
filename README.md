@@ -10,3 +10,5 @@ Radarr4K Suite
       - Includes the option of setting up the Rclone Docker plugin and the creation of Rclone Docker volumes (to attach to the Radarr4K container).
       - Includes the option of joining Radarr4K to an existing Traefik docker network (or creating one if none exists).
       - Includes the option of editing Radarr4K's config.xml to include an existing Radarr4K API - maintaining connections to other applications that rely on it.
+
+(Proper documentation is coming...)
