@@ -48,13 +48,13 @@ radarr4k_prometheus_paths_data_location: '{{ radarr4k_prometheus_paths_location 
 radarr4k_prometheus_binds_config_mapping:
   - '{{ radarr4k_prometheus_paths_location }}/prometheus.yml:/etc/prometheus/prometheus.yml'
 
-radarr4k_prometheus_binds_data_mapping: 
+radarr4k_prometheus_binds_data_mapping:
   - '{{ radarr4k_prometheus_paths_data_location }}:/data'
 
 ################################
 # TRAEFIK
 ################################
-  
+
 radarr4k_prometheus_traefik_subdomain: '{{ radarr4k_prometheus_basics_name }}'
 radarr4k_prometheus_traefik_domain: []
 radarr4k_prometheus_traefik_network: 'traefik_proxy'
@@ -83,6 +83,5 @@ radarr4k_prometheus_exporter_name: '{{ radarr4k_basics_name }}_exporter'
 radarr4k_prometheus_exporter_image_repo: 'ghcr.io/onedr0p/exportarr'
 radarr4k_prometheus_exporter_image_tag: 'v2.0.1'
 radarr4k_prometheus_exporter_restart_policy: 'unless-stopped'
-radarr4k_prometheus_exporter_host_port: '9704' 
+radarr4k_prometheus_exporter_host_port: '9704'
 radarr4k_prometheus_exporter_cont_port: '9708'
-

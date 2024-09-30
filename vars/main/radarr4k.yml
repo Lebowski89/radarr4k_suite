@@ -29,7 +29,7 @@ radarr4k_network_postgres_bind:
 radarr4k_network_traefik_bind:
   - name: '{{ radarr4k_traefik_network }}'
 radarr4k_network_prometheus_bind:
-  - name: '{{radarr4k_prometheus_network }}'
+  - name: '{{ radarr4k_prometheus_network }}'
 
 radarr4k_docker_networks: '{{ radarr4k_network_default_bind
                             + (radarr4k_network_postgres_bind
