@@ -21,8 +21,8 @@ radarr4k_recyclarr_env_pgid: []
 # PATHS
 ################################
 
-radarr4k_recyclarr_paths_folder: '{{ radarr4k_recyclarr_name }}'
-radarr4k_recyclarr_paths_location: '/opt/{{ radarr4k_recyclarr_folder }}'
+radarr4k_recyclarr_paths_folder: '{{ radarr4k_recyclarr_basics_name }}'
+radarr4k_recyclarr_paths_location: '/opt/{{ radarr4k_recyclarr_paths_folder }}'
 
 ################################
 # BINDS

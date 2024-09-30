@@ -169,7 +169,7 @@
               - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
               - c465ccc73923871b3eb1802042331306 # Line/Mic Dubbed
               - 9c38ebb7384dada637be8899efa68e6f # SDR
-            quality_profiles:
+            assign_scores_to:
               - name: "Remux + WEB 2160p"
   notify:
     - restart recyclarr
