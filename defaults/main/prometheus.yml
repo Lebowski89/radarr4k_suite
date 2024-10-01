@@ -14,16 +14,16 @@ radarr4k_prometheus_basics_restart_policy: 'unless-stopped'
 ################################
 
 radarr4k_prometheus_network: 'prometheus'
-radarr4k_prometheus_network_driver: []
-radarr4k_prometheus_network_subnet: []
+radarr4k_prometheus_network_driver: ''
+radarr4k_prometheus_network_subnet: ''
 
 ################################
 # ENV
 ################################
 
-radarr4k_prometheus_env_timezone: []
-radarr4k_prometheus_env_puid: []
-radarr4k_prometheus_env_pgid: []
+radarr4k_prometheus_env_timezone: ''
+radarr4k_prometheus_env_puid: ''
+radarr4k_prometheus_env_pgid: ''
 
 ################################
 # PORTS
@@ -56,7 +56,7 @@ radarr4k_prometheus_binds_data_mapping:
 ################################
 
 radarr4k_prometheus_traefik_subdomain: '{{ radarr4k_prometheus_basics_name }}'
-radarr4k_prometheus_traefik_domain: []
+radarr4k_prometheus_traefik_domain: ''
 radarr4k_prometheus_traefik_network: 'traefik_proxy'
 radarr4k_prometheus_traefik_port: '9090'
 
@@ -66,7 +66,7 @@ radarr4k_prometheus_traefik_port: '9090'
 
 radarr4k_prometheus_cloudflare_record_type: 'A'  ## A (IPV4), AAAA (IPV6), CNAME, etc
 radarr4k_prometheus_cloudflare_proxy: 'true'  ## true for cloudflare DNS SSL
-radarr4k_prometheus_cloudflare_api_token: []
+radarr4k_prometheus_cloudflare_api_token: ''
 
 ################################
 # METRICS

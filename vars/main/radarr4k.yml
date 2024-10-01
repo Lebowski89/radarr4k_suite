@@ -106,7 +106,7 @@ radarr4k_traefik_labels_router:
   traefik.http.routers.radarr4k-api-rtr.entrypoints: 'http'
   traefik.http.routers.radarr4k-api-rtr.middlewares: 'globalHeaders@file,robotHeaders@file'
   traefik.http.routers.radarr4k-api-rtr.priority: '30'
-  traefik.http.routers.radarr4k-api-rtr.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`) && (PathPrefix(`/api/websocket/`))'
+  traefik.http.routers.radarr4k-api-rtr.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`))'
   traefik.http.routers.radarr4k-api-rtr.service: 'radarr4k-rtr-svc'
 
 radarr4k_traefik_labels_router_secure:
@@ -121,7 +121,7 @@ radarr4k_traefik_labels_router_secure:
   traefik.http.routers.radarr4k-api-rtr-secure.entrypoints: 'https'
   traefik.http.routers.radarr4k-api-rtr-secure.middlewares: 'globalHeaders@file,secureHeaders@file,robotHeaders@file'
   traefik.http.routers.radarr4k-api-rtr-secure.priority: '30'
-  traefik.http.routers.radarr4k-api-rtr-secure.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`) && (PathPrefix(`/api/websocket/`))'
+  traefik.http.routers.radarr4k-api-rtr-secure.rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`))'
   traefik.http.routers.radarr4k-api-rtr-secure.service: 'radarr4k-rtr-secure-svc'
   traefik.http.routers.radarr4k-api-rtr-secure.tls.certresolver: 'dns-cloudflare'
   traefik.http.routers.radarr4k-api-rtr-secure.tls.options: 'tls-opts@file'
