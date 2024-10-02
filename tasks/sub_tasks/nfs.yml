@@ -55,8 +55,3 @@
           type: nfs
           o: 'addr={{ radarr4k_nfs_media_address }},{{ radarr4k_nfs_media_permissions }},nfsvers={{ radarr4k_nfs_media_version }}'
           device: '{{ radarr4k_nfs_media_device }}'
-
-    - name: Register radarr4k nfs media volume
-      community.docker.docker_volume_info:
-        name: '{{ radarr4k_nfs_media_name }}'
-      register: radarr4k_nfs_media_volume_result

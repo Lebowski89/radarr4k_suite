@@ -4,7 +4,6 @@
 # ENV
 ################################
 
-radarr4k_nfs_env_timezone: ''
 radarr4k_nfs_env_puid: ''
 radarr4k_nfs_env_pgid: ''
 
