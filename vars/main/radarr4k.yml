@@ -40,10 +40,34 @@ radarr4k_network_backend_is_enabled: '{{ (radarr4k_network_backend_driver is def
                                          (radarr4k_network_backend_subnet | trim | length > 0) }}'
 
 ################################
+# ENV
+################################
+
+radarr4k_env_default:
+  PUID: '{{ radarr4k_env_puid }}'
+  PGID: '{{ radarr4k_env_pgid }}'
+  TZ: '{{ radarr4k_env_timezone }}'
+
+radarr4k_env_themepark_local:
+  TP_SCHEME: 'http'
+  TP_DOMAIN: '{{ radarr4k_themepark_domain_local }}'
+  TP_HOTIO: 'true'
+  TP_THEME: '{{ radarr4k_theme }}'
+  TP_ADDON: 'radarr-4k-logo|radarr-4k-favicon'
+
+radarr4k_docker_envs: '{{ radarr4k_env_default
+                          | combine((radarr4k_env_themepark_local
+                                     if radarr4k_themepark_local_is_enabled
+                                     else [])) }}'
+
+################################
 # BINDS
 ################################
 
 radarr4k_docker_volumes: '{{ radarr4k_volumes_binds_default
+                             + (radarr4k_volumes_binds_themepark
+                                if radarr4k_themepark_local_is_enabled
+                                else [])
                              + (radarr4k_nfs_media_bind
                                 if radarr4k_nfs_media_volume_is_enabled
                                 else [])
@@ -98,8 +122,8 @@ radarr4k_traefik_labels_router_secure:
   traefik.http.routers.radarr4k-api-rtr-secure.tls.options: 'tls-opts@file'
 
 radarr4k_traefik_labels_themepark:
-  traefik.http.middlewares.themepark-portainer.plugin.themepark.app: '{{ radarr4k_basics_name }}'
-  traefik.http.middlewares.themepark-portainer.plugin.themepark.theme: '{{ radarr4k_traefik_themepark_theme }}'
+  traefik.http.middlewares.themepark-radarr4k.plugin.themepark.app: 'radarr'
+  traefik.http.middlewares.themepark-radarr4k.plugin.themepark.theme: '{{ radarr4k_theme }}'
 
 radarr4k_traefik_labels: '{{ radarr4k_traefik_labels_default
                              | combine(radarr4k_traefik_labels_router)
@@ -127,3 +151,20 @@ radarr4k_cloudflare_zone: '{{ radarr4k_traefik_domain }}'
 radarr4k_cloudflare_is_enabled: '{{ (radarr4k_cloudflare_api_token is defined) and
                                     (radarr4k_cloudflare_api_token is not none) and
                                     (radarr4k_cloudflare_api_token | trim | length > 0) }}'
+
+################################
+# THEME
+################################
+
+radarr4k_themepark_local_is_enabled: '{{ (radarr4k_themepark_env_timezone is defined) and
+                                         (radarr4k_themepark_env_timezone is not none) and
+                                         (radarr4k_themepark_env_timezone | trim | length > 0) and
+                                         (radarr4k_themepark_env_puid is defined) and
+                                         (radarr4k_themepark_env_puid is not none) and
+                                         (radarr4k_themepark_env_puid | trim | length > 0) and
+                                         (radarr4k_themepark_env_pgid is defined) and
+                                         (radarr4k_themepark_env_pgid is not none) and
+                                         (radarr4k_themepark_env_pgid | trim | length > 0) and
+                                         (radarr4k_themepark_domain_local is defined) and
+                                         (radarr4k_themepark_domain_local is not none) and
+                                         (radarr4k_themepark_domain_local | trim | length > 0) }}'

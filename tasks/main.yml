@@ -246,6 +246,22 @@
   ansible.builtin.include_tasks: 'prometheus/prometheus_cloudflare.yml'
 
 ################################
+# THEMEPARK
+################################
+
+- name: Run themepark tasks
+  when: radarr4k_themepark_local_is_enabled
+  block:
+    - name: Register themepark container
+      community.docker.docker_container_info:
+        name: '{{ radarr4k_themepark_basics_name }}'
+      register: radarr4k_themepark_container_result
+
+    - name: Include themepark tasks
+      when: not radarr4k_themepark_container_result.exists
+      ansible.builtin.include_tasks: 'sub_tasks/themepark.yml'
+
+################################
 # CONTAINER
 ################################
 
@@ -255,14 +271,10 @@
     name: '{{ radarr4k_basics_name }}'
     image: '{{ radarr4k_basics_image_repo }}:{{ radarr4k_basics_image_tag }}'
     networks: '{{ radarr4k_docker_networks }}'
-    env:
-      PUID: '{{ radarr4k_env_puid }}'
-      PGID: '{{ radarr4k_env_pgid }}'
-      TZ: '{{ radarr4k_env_timezone }}'
+    env: '{{ radarr4k_docker_envs }}'
     ports:
       - '{{ radarr4k_ports_host }}:{{ radarr4k_ports_cont }}'
     volumes: '{{ radarr4k_docker_volumes }}'
-#    healthcheck:
     restart_policy: '{{ radarr4k_basics_restart_policy }}'
 
 - name: Create radarr4k traefik container
@@ -271,15 +283,11 @@
     name: '{{ radarr4k_basics_name }}'
     image: '{{ radarr4k_basics_image_repo }}:{{ radarr4k_basics_image_tag }}'
     networks: '{{ radarr4k_docker_networks }}'
-    env:
-      PUID: '{{ radarr4k_env_puid }}'
-      PGID: '{{ radarr4k_env_pgid }}'
-      TZ: '{{ radarr4k_env_timezone }}'
+    env: '{{ radarr4k_docker_envs }}'
     labels: '{{ radarr4k_traefik_labels }}'
     ports:
       - '{{ radarr4k_ports_host }}:{{ radarr4k_ports_cont }}'
     volumes: '{{ radarr4k_docker_volumes }}'
-#    healthcheck:
     restart_policy: '{{ radarr4k_basics_restart_policy }}'
 
 ################################

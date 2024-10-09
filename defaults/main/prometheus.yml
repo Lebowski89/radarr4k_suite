@@ -57,7 +57,7 @@ radarr4k_prometheus_binds_data_mapping:
 
 radarr4k_prometheus_traefik_subdomain: '{{ radarr4k_prometheus_basics_name }}'
 radarr4k_prometheus_traefik_domain: ''
-radarr4k_prometheus_traefik_network: 'traefik_proxy'
+radarr4k_prometheus_traefik_network: '{{ radarr4k_traefik_network }}'
 radarr4k_prometheus_traefik_port: '9090'
 
 ################################

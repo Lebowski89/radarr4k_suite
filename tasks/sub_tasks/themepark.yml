@@ -1,0 +1,31 @@
+---
+
+################################
+# APPDATA
+################################
+
+- name: Create themepark appdata directory
+  ansible.builtin.file:
+    path: '{{ radarr4k_themepark_paths_location }}'
+    state: directory
+    owner: '{{ radarr4k_themepark_env_puid }}'
+    group: '{{ radarr4k_themepark_env_pgid }}'
+    mode: '0755'
+
+################################
+# CONTAINER
+################################
+
+- name: Create themepark container
+  community.docker.docker_container:
+    name: '{{ radarr4k_themepark_basics_name }}'
+    image: '{{ radarr4k_themepark_basics_image_repo }}:{{ radarr4k_themepark_basics_image_tag }}'
+    networks: '{{ radarr4k_network_backend }}'
+    env:
+      PUID: '{{ radarr4k_themepark_env_puid }}'
+      PGID: '{{ radarr4k_themepark_env_pgid }}'
+      TZ: '{{ radarr4k_themepark_env_timezone }}'
+    ports:
+      - '{{ radarr4k_themepark_ports_host }}:{{ radarr4k_themepark_ports_cont }}'    
+    volumes: '{{ radarr4k_themepark_bind_mount }}'
+    restart_policy: '{{ radarr4k_themepark_basics_restart_policy }}'

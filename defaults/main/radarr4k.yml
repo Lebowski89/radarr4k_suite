@@ -53,6 +53,9 @@ radarr4k_volumes_binds_default:
   - /etc/localtime:/etc/localtime:ro
   - '{{ radarr4k_paths_location }}:/config'
 
+radarr4k_volumes_binds_themepark:  ## only binds if local themepark is deployed
+  - '{{ radarr4k_themepark_paths_location }}/docker-mods/98-themepark-radarr:/etc/cont-init.d/98-themepark'
+
 ################################
 # AUTHELIA
 ################################
@@ -66,7 +69,6 @@ radarr4k_authelia_name: 'authelia'
 radarr4k_traefik_subdomain: '{{ radarr4k_basics_name }}'
 radarr4k_traefik_domain: ''
 radarr4k_traefik_port: '7878'
-radarr4k_traefik_themepark_theme: 'hotline'  ## See https://github.com/themepark-dev/theme.park
 
   ## traefik docker network
 radarr4k_traefik_network: 'traefik_proxy'
@@ -80,3 +82,9 @@ radarr4k_traefik_network_subnet: ''  ## only required if network doesn't exist
 radarr4k_cloudflare_record_type: 'A'  ## A (IPV4), AAAA (IPV6), CNAME, etc
 radarr4k_cloudflare_proxy: 'true'  ## true for cloudflare DNS SSL
 radarr4k_cloudflare_api_token: ''
+
+################################
+# THEME
+################################
+
+radarr4k_theme: 'hotline'  ## See https://github.com/themepark-dev/theme.park
