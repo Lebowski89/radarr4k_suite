@@ -22,7 +22,7 @@
       ansible.builtin.lineinfile:
         dest: '{{ radarr4k_autofs_auto_mast_file }}'
         line: '{{ radarr4k_autofs_nfs_local_path }} {{ radarr4k_autofs_nfsdb_file }} --timeout=0 --browse'
-        state: 'present'
+        state: present
         create: true
         owner: '{{ radarr4k_nfs_env_puid }}'
         group: '{{ radarr4k_nfs_env_pgid }}'
@@ -34,7 +34,7 @@
       ansible.builtin.lineinfile:
         dest: '{{ radarr4k_autofs_nfsdb_file }}'
         line: '{{ radarr4k_autofs_media_mount_local_dir_name }} {{ radarr4k_autofs_media_mount_opt }} {{ radarr4k_autofs_media_mount_host_address }}:{{ radarr4k_autofs_media_mount_remote_path }}'
-        state: 'present'
+        state: present
         create: true
         owner: '{{ radarr4k_nfs_env_puid }}'
         group: '{{ radarr4k_nfs_env_pgid }}'
