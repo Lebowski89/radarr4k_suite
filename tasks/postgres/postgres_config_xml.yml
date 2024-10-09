@@ -5,42 +5,42 @@
     - name: Radarr4k config.xml | Lookup PostgresUser value
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
-        xpath: '/Config/PostgresUser'
+        xpath: /Config/PostgresUser
         print_match: true
       register: xml_radarr4k_postgresuser
 
     - name: Radarr4k config.xml | Lookup PostgresPassword value
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
-        xpath: '/Config/PostgresPassword'
+        xpath: /Config/PostgresPassword
         print_match: true
       register: xml_radarr4k_postgrespassword
 
     - name: Radarr4k config.xml | Lookup PostgresPort value
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
-        xpath: '/Config/PostgresPort'
+        xpath: /Config/PostgresPort
         print_match: true
       register: xml_radarr4k_postgresport
 
     - name: Radarr4k config.xml | Lookup PostgresHost value
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
-        xpath: '/Config/PostgresHost'
+        xpath: /Config/PostgresHost
         print_match: true
       register: xml_radarr4k_postgreshost
 
     - name: Radarr4k config.xml | Lookup PostgresMainDb value
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
-        xpath: '/Config/PostgresMainDb'
+        xpath: /Config/PostgresMainDb
         print_match: true
       register: xml_radarr4k_postgresmaindb
 
     - name: Radarr4k config.xml | Lookup PostgresLogDb value
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
-        xpath: '/Config/PostgresLogDb'
+        xpath: /Config/PostgresLogDb
         print_match: true
       register: xml_radarr4k_postgreslogdb
 
@@ -52,7 +52,7 @@
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
         pretty_print: true
-        xpath: '/Config/PostgresUser'
+        xpath: /Config/PostgresUser
         value: '{{ radarr4k_postgres_auth_user }}'
 
     - name: Radarr4k.xml | Adding PostgresPassword
@@ -61,7 +61,7 @@
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
         pretty_print: true
-        xpath: '/Config/PostgresPassword'
+        xpath: /Config/PostgresPassword
         value: '{{ radarr4k_postgres_auth_password }}'
 
     - name: Radarr4k.xml | Adding PostgresPort
@@ -70,7 +70,7 @@
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
         pretty_print: true
-        xpath: '/Config/PostgresPort'
+        xpath: /Config/PostgresPort
         value: '{{ radarr4k_postgres_ports_cont }}'
 
     - name: Radarr4k.xml | Adding PostgresHost
@@ -79,7 +79,7 @@
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
         pretty_print: true
-        xpath: '/Config/PostgresHost'
+        xpath: /Config/PostgresHost
         value: '{{ radarr4k_postgres_basics_name }}'
 
     - name: Radarr4k.xml | Adding PostgresMainDb
@@ -88,7 +88,7 @@
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
         pretty_print: true
-        xpath: '/Config/PostgresMainDb'
+        xpath: /Config/PostgresMainDb
         value: '{{ radarr4k_postgres_database_main }}'
 
     - name: Radarr4k.xml | Adding PostgresLogDb
@@ -97,7 +97,7 @@
       community.general.xml:
         path: '{{ radarr4k_paths_location }}/config.xml'
         pretty_print: true
-        xpath: '/Config/PostgresLogDb'
+        xpath: /Config/PostgresLogDb
         value: '{{ radarr4k_postgres_database_log }}'
 
 - name: Clean radarr4k appdir
