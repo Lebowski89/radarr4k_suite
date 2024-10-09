@@ -87,4 +87,7 @@ radarr4k_cloudflare_api_token: ''
 # THEME
 ################################
 
-radarr4k_theme: 'hotline'  ## See https://github.com/themepark-dev/theme.park
+  ## See https://github.com/themepark-dev/theme.park
+
+radarr4k_theme_local: 'hotline'  ## theme to use for local theme-park deployment
+radarr4k_theme_traefik: 'hotpink'  ## theme to use for traefik theme-park plugin middleware
