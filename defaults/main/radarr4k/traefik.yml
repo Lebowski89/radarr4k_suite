@@ -1,0 +1,71 @@
+---
+
+################################
+# DOMAIN
+################################
+
+radarr4k_traefik_subdomain:
+radarr4k_traefik_domain:
+radarr4k_traefik_port: '7878'
+
+################################
+# NETWORK
+################################
+
+radarr4k_traefik_network: 'traefik_proxy'
+radarr4k_traefik_network_driver: 'bridge'  ## only required if network doesn't exist
+radarr4k_traefik_network_subnet: ''  ## only required if network doesn't exist
+
+################################
+# TLS
+################################
+
+radarr4k_traefik_tls_certresolver: 'dns-cloudflare'
+radarr4k_traefik_tls_options: 'tls-opts@file'
+
+################################
+# ROUTER (HTTP)
+################################
+
+  ## http
+radarr4k_traefik_http_middlewares: 'globalHeaders@file,redirect-to-https@docker,robotHeaders@file'
+radarr4k_traefik_http_rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`)'
+radarr4k_traefik_http_priority: '20'
+
+  ## http-api
+radarr4k_traefik_http_api_middlewares: 'globalHeaders@file,redirect-to-https@docker,robotHeaders@file'
+radarr4k_traefik_http_api_rule: '{{ radarr4k_traefik_http_rule }} && (PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`))'
+radarr4k_traefik_http_api_priority: '30'
+
+################################
+# ROUTER (HTTPS)
+################################
+
+  ## https
+radarr4k_traefik_https_middlewares: 'globalHeaders@file,secureHeaders@file,robotHeaders@file'
+radarr4k_traefik_https_rule: 'Host(`{{ radarr4k_traefik_subdomain }}.{{ radarr4k_traefik_domain }}`)'
+radarr4k_traefik_https_priority: '20'
+
+  ## https-api
+radarr4k_traefik_https_api_middlewares: 'globalHeaders@file,secureHeaders@file,robotHeaders@file'
+radarr4k_traefik_https_api_rule: '{{ radarr4k_traefik_https_rule }} && (PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`))'
+radarr4k_traefik_https_api_priority: '30'
+
+################################
+# AUTHELIA
+################################
+
+radarr4k_traefik_authelia_container_name: 'authelia'
+radarr4k_traefik_authelia_middleware: 'authelia@docker'
+
+################################
+# CLOUDFLARE
+################################
+
+radarr4k_traefik_cloudflare_middleware: 'cloudflarewarp@docker'
+
+################################
+# THEME-PARK
+################################
+
+radarr4k_traefik_themepark_theme: 'hotpink'

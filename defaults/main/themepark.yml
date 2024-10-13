@@ -13,19 +13,18 @@ radarr4k_themepark_basics_restart_policy: 'unless-stopped'
 # ENV
 ################################
 
-radarr4k_themepark_env_timezone: ''
-radarr4k_themepark_env_puid: ''
-radarr4k_themepark_env_pgid: ''
+radarr4k_themepark_env_timezone: 'Etc/UTC'
+radarr4k_themepark_env_puid: '1000'
+radarr4k_themepark_env_pgid: '1000'
 
 ################################
 # DOMAIN (LOCAL)
 ################################
 
-  ## Fill if wanting themes served locally via http on local network.
-  ## Will deploy theme-park in a docker container.
   ## Must be accessible to your browser - try: '<local_machine_ip>:{{ radarr4k_themepark_ports_host }}'
 
 radarr4k_themepark_domain_local: ''
+radarr4k_themepark_domain_local_theme: 'hotline'  ## theme to use for local theme-park deployment
 
 ################################
 # PORTS

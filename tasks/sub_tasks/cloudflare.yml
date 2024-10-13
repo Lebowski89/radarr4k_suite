@@ -1,9 +1,5 @@
 ---
 
-################################
-# radarr4k
-################################
-
 - name: Remove existing CNAME DNS record
   community.general.cloudflare_dns:
     api_token: '{{ radarr4k_cloudflare_api_token }}'

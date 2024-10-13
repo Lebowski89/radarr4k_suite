@@ -59,7 +59,28 @@
   register: radarr4k_prometheus_container_result
 
 - name: Create prometheus container
-  when: not radarr4k_prometheus_container_result.exists
+  when: 
+    - not radarr4k_prometheus_container_result.exists
+    - (not radarr4k_toggles_enable_traefik) or (not radarr4k_prometheus_traefik_is_enabled)
+  community.docker.docker_container:
+    name: '{{ radarr4k_prometheus_basics_name }}'
+    image: '{{ radarr4k_prometheus_basics_image_repo }}:{{ radarr4k_prometheus_basics_image_tag }}'
+    networks: '{{ radarr4k_prometheus_docker_networks }}'
+    command: '{{ radarr4k_prometheus_commands | reject("equalto", omit) | list }}'
+    env:
+      PUID: '{{ radarr4k_prometheus_env_puid }}'
+      PGID: '{{ radarr4k_prometheus_env_pgid }}'
+      TZ: '{{ radarr4k_prometheus_env_timezone }}'
+    ports:
+      - '{{ radarr4k_prometheus_ports_host }}:{{ radarr4k_prometheus_ports_cont }}'
+    volumes: '{{ radarr4k_prometheus_volumes_binds }}'
+    restart_policy: '{{ radarr4k_prometheus_basics_restart_policy }}'
+
+- name: Create prometheus traefik container
+  when: 
+    - not radarr4k_prometheus_container_result.exists
+    - radarr4k_toggles_enable_traefik
+    - radarr4k_prometheus_traefik_is_enabled
   community.docker.docker_container:
     name: '{{ radarr4k_prometheus_basics_name }}'
     image: '{{ radarr4k_prometheus_basics_image_repo }}:{{ radarr4k_prometheus_basics_image_tag }}'

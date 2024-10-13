@@ -1,0 +1,57 @@
+---
+
+################################
+# API
+################################
+
+radarr4k_api_key: ''
+
+################################
+# BASICS
+################################
+
+radarr4k_basics_name: 'radarr4k'
+radarr4k_basics_image_repo: 'ghcr.io/hotio/radarr'
+radarr4k_basics_image_tag: 'nightly'
+radarr4k_basics_restart_policy: 'unless-stopped'
+
+################################
+# NETWORK
+################################
+
+radarr4k_network_backend: 'proxy'  ## allows backend docker communication between radarr4k and companion apps
+radarr4k_network_backend_driver: 'bridge'  ## only required if network doesn't exist
+radarr4k_network_backend_subnet: ''  ## only required if network doesn't exist
+
+################################
+# ENV
+################################
+
+radarr4k_env_timezone: 'Etc/UTC'
+radarr4k_env_puid: '1000'
+radarr4k_env_pgid: '1000'
+
+################################
+# PORTS
+################################
+
+radarr4k_ports_host: '7879'
+radarr4k_ports_cont: '7878'
+
+################################
+# PATHS
+################################
+
+radarr4k_paths_folder: '{{ radarr4k_basics_name }}'
+radarr4k_paths_location: '/opt/{{ radarr4k_paths_folder }}'
+
+################################
+# BINDS
+################################
+
+radarr4k_volumes_binds_default:
+  - /etc/localtime:/etc/localtime:ro
+  - '{{ radarr4k_paths_location }}:/config'
+
+radarr4k_volumes_binds_themepark:  ## only binds if local themepark is deployed
+  - '{{ radarr4k_themepark_paths_location }}/docker-mods/98-themepark-radarr:/etc/cont-init.d/98-themepark'
